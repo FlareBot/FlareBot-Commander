@@ -1,0 +1,10 @@
+.idea
+*.iml
+tags
+
+imgs/
+target/
+/modules/
+latest.log
+config.*
+*.json
