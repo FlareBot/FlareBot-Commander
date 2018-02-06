@@ -10,7 +10,6 @@ import java.io.IOException;
 
 public abstract class Module {
 
-    private final ModuleHandler handler = ModuleHandler.getInstance();
     private Logger logger;
 
     private ModuleClassLoader classLoader;
@@ -42,10 +41,6 @@ public abstract class Module {
         this.classLoader = loader;
 
         this.logger = LoggerFactory.getLogger("Module [" + desc.id() + "]");
-    }
-
-    public ModuleHandler getModuleHandler() {
-        return this.handler;
     }
 
     /**
