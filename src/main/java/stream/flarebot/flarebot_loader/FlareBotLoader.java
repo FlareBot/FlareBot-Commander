@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Service;
 import stream.flarebot.flarebot_loader.modules.ModuleLoader;
-import stream.flarebot.flarebot_loader.rest.RestTest;
+import stream.flarebot.flarebot_loader.rest.ModuleRest;
 
 import java.nio.file.Paths;
 
@@ -43,7 +43,7 @@ public class FlareBotLoader {
         // Init REST server
         logger.info("Starting REST server");
         Service service = Service.ignite().port(4567);
-        new RestTest(service);
+        new ModuleRest(service);
 
         logger.info("Running FlareBot Commander");
         run();

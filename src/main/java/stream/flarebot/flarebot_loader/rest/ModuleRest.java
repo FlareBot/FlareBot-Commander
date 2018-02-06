@@ -6,12 +6,18 @@ import spark.Response;
 import spark.Service;
 import stream.flarebot.flarebot_loader.FlareBotLoader;
 import stream.flarebot.flarebot_loader.modules.Module;
+import stream.flarebot.flarebot_loader.modules.ModuleLoader;
 
-public class RestTest {
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-    public RestTest(Service service) {
+public class ModuleRest {
+
+    public ModuleRest(Service service) {
         service.get("/status/:id", this::handleStatus);
-        service.get("/restart/:id", this::handleRestart);
+        service.get("/restart/:id", (req, res) -> handleAction(req, res, ModuleLoader.ModuleAction.RESTART));
+        service.get("/stop/:id", (req, res) -> handleAction(req, res, ModuleLoader.ModuleAction.STOP));
+        service.get("/start/:id", (req, res) -> handleAction(req, res, ModuleLoader.ModuleAction.START));
     }
 
     private JSONObject getErrorJson(String message) {
@@ -26,19 +32,19 @@ public class RestTest {
     }
 
     private JSONObject handleStatus(Request req, Response res) {
-        Module module = FlareBotLoader.getInstance().getModuleLoader().getModuleById(req.params("id"));
+        Module module = FlareBotLoader.getInstance().getModuleLoader().getModule(req.params("id"));
         if (module == null) {
             return handleResponse(res, 400, getErrorJson("That module does not exist or is not loaded!"));
         }
         return handleResponse(res, 200, new JSONObject().put("status", module.getStatus().toString()));
     }
 
-    private JSONObject handleRestart(Request req, Response res) {
-        Module module = FlareBotLoader.getInstance().getModuleLoader().getModuleById(req.params("id"));
+    private JSONObject handleAction(Request req, Response res, Consumer<Module> action) {
+        Module module = FlareBotLoader.getInstance().getModuleLoader().getModule(req.params("id"));
         if (module == null) {
             return handleResponse(res, 400, getErrorJson("That module does not exist or is not loaded!"));
         }
-        FlareBotLoader.getInstance().getModuleLoader().restartModule(module);
+        action.accept(module);
         return handleResponse(res, 200, new JSONObject().put("status", module.getStatus().toString()));
     }
 }

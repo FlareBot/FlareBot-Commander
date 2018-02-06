@@ -1,31 +1,21 @@
 package stream.flarebot.flarebot_loader.modules;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
 public class ModuleLoader {
 
-    private static ModuleLoader instance;
 
     private final Map<String, Module> loadedModules = new HashMap<>();
 
@@ -33,9 +23,8 @@ public class ModuleLoader {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    /**
-     * <b>DO NOT create a new instance of ModuleLoader!</b>
-     */
+    private static ModuleLoader instance;
+
     public ModuleLoader() {
         instance = this;
     }
@@ -95,7 +84,7 @@ public class ModuleLoader {
                 Class<?> clazz;
                 try {
                     clazz = loader.loadClass(className);
-                }catch (NoClassDefFoundError | ClassNotFoundException e) {
+                } catch (NoClassDefFoundError | ClassNotFoundException e) {
                     logger.debug("Class not found: " + e.getMessage() + " - Ignoring (This is usually Gradle or other " +
                             "build tools)");
                     continue;
@@ -212,8 +201,39 @@ public class ModuleLoader {
         return Collections.unmodifiableCollection(loadedModules.values());
     }
 
-    public Module getModuleById(String id) {
+    /**
+     * Gets a loaded module, if you want to try and load a module (with return) use
+     * {@link ModuleLoader#loadModule(File)}
+     *
+     * @param id Module id (eg "core", "commands")
+     * @return The module if it can be found in the loaded ones with the passed id, null if it is not found
+     */
+    public Module getModule(String id) {
         return this.loadedModules.get(id);
+    }
+
+    private boolean isValidModule(String s) {
+        return isValidModule(getModule(s));
+    }
+
+    private boolean isValidModule(Module module) {
+        return module != null;
+    }
+
+    public boolean isModuleLoaded(String s) {
+        return isValidModule(s);
+    }
+
+    public boolean isModuleLoaded(Module module) {
+        return isValidModule(module);
+    }
+
+    public boolean isModuleRunning(String s) {
+        return isModuleRunning(getModule(s));
+    }
+
+    public boolean isModuleRunning(Module module) {
+        return isValidModule(module) && module.getStatus() == ModuleStatus.RUNNING;
     }
 
     public static ModuleLoader getInstance() {
@@ -226,4 +246,13 @@ public class ModuleLoader {
                 return module;
         return null;
     }
+
+    public static class ModuleAction {
+
+        public static final Consumer<Module> STOP = (m) -> ModuleLoader.getInstance().stopModule(m);
+        public static final Consumer<Module> START = (m) -> ModuleLoader.getInstance().startModule(m);
+        public static final Consumer<Module> RESTART = (m) -> ModuleLoader.getInstance().restartModule(m);
+
+    }
+
 }
