@@ -16,14 +16,14 @@ import org.slf4j.LoggerFactory;
 
 public class ModuleLoader {
 
-
-    private final Map<String, Module> loadedModules = new HashMap<>();
-
     private static final ClassPool CLASS_POOL = new ClassPool(true);
 
+    private final Map<String, Module> loadedModules = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static ModuleLoader instance;
+
+    private Path modulesPath;
 
     public ModuleLoader() {
         instance = this;
@@ -127,7 +127,13 @@ public class ModuleLoader {
      * Note that the modules <b>must be a jar file and have a module.info file</b>
      */
     public void loadAllModules(Path path) {
-        File modulesFile = path.toFile();
+        Path p = path;
+        if (modulesPath == null && p != null)
+            modulesPath = path;
+        if (p == null && modulesPath != null)
+            p = modulesPath;
+        Objects.requireNonNull(p, "Make sure you have set the Path for modules (loadAllModules) at least once!");
+        File modulesFile = p.toFile();
         List<File> tmp = new ArrayList<>();
         boolean foundCore = false;
         for (File moduleFile : Objects.requireNonNull(modulesFile.listFiles(), "Modules file cannot be null!")) {
@@ -186,11 +192,23 @@ public class ModuleLoader {
 
     public void stopAllModules() {
         for (Module module : loadedModules.values()) {
+            if (module.getDescription().core())
+                continue;
             stopModule(module);
         }
+        stopModule(getCoreModule());
+    }
+
+    public void restartAllModules() {
+        logger.info("Restarting all modules!");
+        stopAllModules();
+        loadAllModules(null);
+        startAllModules();
+        logger.info("Restarted all modules!");
     }
 
     public void restartModule(Module module) {
+        module.setStatus(ModuleStatus.RESTARTING);
         File f = module.getModuleFile();
         stopModule(module);
         Module newModule = loadModule(f);
