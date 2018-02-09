@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public abstract class Module {
 
-    private Logger logger;
+    public Logger logger;
 
     private ModuleClassLoader classLoader;
 
