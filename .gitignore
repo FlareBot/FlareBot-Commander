@@ -8,3 +8,4 @@ target/
 latest.log
 config.*
 *.json
+*.yml
