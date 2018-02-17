@@ -78,7 +78,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>stream.flarebot.flarebot.FlareBotLoader</mainClass>
+                            <mainClass>stream.flarebot.flarebot_loader.FlareBotLoader</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

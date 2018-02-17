@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -18,7 +19,7 @@ public class ModuleLoader {
 
     private static final ClassPool CLASS_POOL = new ClassPool(true);
 
-    private final Map<String, Module> loadedModules = new HashMap<>();
+    private final Map<String, Module> loadedModules = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static ModuleLoader instance;
