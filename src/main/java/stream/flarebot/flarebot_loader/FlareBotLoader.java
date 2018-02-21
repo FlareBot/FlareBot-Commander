@@ -62,8 +62,8 @@ public class FlareBotLoader {
             System.exit(1);
         }
 
-        logger.info("Starting all modules");
-        loader.startAllModules();
+        logger.info("initialising and starting all modules");
+        loader.initAllModules(true);
         logger.info("Started all modules");
     }
 

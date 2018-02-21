@@ -42,16 +42,26 @@ public class ModuleClassLoader extends URLClassLoader {
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         Class<?> cls = CLASS_MAP.get(name);
-        if (cls != null) {
-            return cls;
-        }
+        //System.out.println(name + ", Cached: " + (cls != null));
+        //if (cls != null) {
+            //return cls;
+        //}
 
         try {
-            cls = super.findClass(name);
+            try {
+                cls = super.findClass(name);
+            } catch (NoClassDefFoundError | ClassNotFoundException e) {
+                cls = Class.forName(name);
+            }
         } catch (NoClassDefFoundError | ClassNotFoundException e) {
-            cls = Class.forName(name);
+            if (cls != null)
+                return cls;
+
+            throw new ClassNotFoundException("Could not find class '" + name + "'");
         }
+        //System.out.println(cls.getClassLoader().getClass().getName());
         this.classes.add(cls);
+        //System.out.println("Overriding: " + CLASS_MAP.containsKey(name));
         CLASS_MAP.put(name, cls);
 
         return cls;

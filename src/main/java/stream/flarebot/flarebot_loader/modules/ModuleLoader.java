@@ -81,6 +81,7 @@ public class ModuleLoader {
             long c = System.currentTimeMillis();
             ModuleClassLoader loader = new ModuleClassLoader(moduleFile);
             Class<? extends Module> mainClass = null;
+            //System.out.println("Loading classes for module: " + moduleFile.getName());
             for (String className : classNames) {
                 Class<?> clazz;
                 try {
@@ -105,7 +106,7 @@ public class ModuleLoader {
             long e = System.currentTimeMillis();
             logger.debug("Making new instance of " + mainClass.getName());
             Module module = mainClass.getConstructor().newInstance();
-            module.init(desc, moduleFile, loader);
+            module.load(desc, moduleFile, loader);
 
             loadedModules.put(desc.id(), module);
             long f = System.currentTimeMillis();
@@ -155,11 +156,28 @@ public class ModuleLoader {
             loadModule(f);
     }
 
-    public void startModule(Module module) {
+    public void initModule(Module module) {
         Objects.requireNonNull(module, "Cannot start a null module!");
-        module.setStatus(ModuleStatus.STARTING);
+        module.setStatus(ModuleStatus.INITIALISING);
         module.init();
-        module.setStatus(ModuleStatus.STARTED);
+        module.setStatus(ModuleStatus.INITIALISED);
+    }
+
+    /**
+     *
+     * @param startAfter If the modules should start after they're all being ran.
+     */
+    public void initAllModules(boolean startAfter) {
+        initModule(getCoreModule());
+        for (Module module : getModules()) {
+            if (module.getStatus() == ModuleStatus.INITIALISING || module.getStatus() == ModuleStatus.INITIALISED) continue;
+            initModule(module);
+        }
+        if (startAfter)
+            startAllModules();
+    }
+
+    public void startModule(Module module) {
         module.run();
         module.setStatus(ModuleStatus.RUNNING);
     }
@@ -168,8 +186,7 @@ public class ModuleLoader {
         Objects.requireNonNull(getCoreModule(), "Cannot start without a core module!");
         startModule(getCoreModule());
         for (Module module : loadedModules.values()) {
-            if (module.getStatus() == ModuleStatus.STARTING || module.getStatus() == ModuleStatus.STARTED
-                    || module.getStatus() == ModuleStatus.RUNNING) continue;
+            if (module.getStatus() == ModuleStatus.RUNNING) continue;
             startModule(module);
         }
     }

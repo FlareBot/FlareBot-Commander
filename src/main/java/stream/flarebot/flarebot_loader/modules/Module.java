@@ -35,7 +35,7 @@ public abstract class Module {
         return this.moduleFile;
     }
 
-    public void init(ModuleDesc desc, File moduleFile, ModuleClassLoader loader) {
+    public void load(ModuleDesc desc, File moduleFile, ModuleClassLoader loader) {
         this.description = desc;
         this.moduleFile = moduleFile;
         this.classLoader = loader;
